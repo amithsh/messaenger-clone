@@ -1,0 +1,40 @@
+import prisma from "@/app/libs/prismadb"
+
+import getCurrentUser from "./getCurrentUser"
+
+const getconversations = async ()=> {
+    const currentuser = await getCurrentUser();
+
+    if(!currentuser?.id){
+        return [];
+    }
+
+
+    try{
+        const conversations = await prisma.conversation.findMany({
+            orderBy:{
+                lastMessageAt:'desc'
+            },
+            where:{
+                userIds:{
+                    has: currentuser.id
+                }
+            },
+            include:{
+                users:true,
+                messages:{
+                    include:{
+                        sender:true,
+                        seen: true
+                    }
+                }
+            }
+        })
+        return conversations
+
+    }catch(error:any){
+        return [];
+    }
+}
+
+export default getconversations;
